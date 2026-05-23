@@ -1,0 +1,11 @@
+[package]
+name = "backend-begin"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4"
+tokio = { version = "1.52.3", features = ["full"] }
+
+[workspace]
+members = ["part1" ,"part2"]
