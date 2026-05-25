@@ -1,6 +1,6 @@
 pub mod configs;
 
-use actix_web::{App, HttpServer, Responder, guard, web};
+use actix_web::{App, HttpServer, guard, web};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 
 use configs::webscopes::{init, load_users, users_config};

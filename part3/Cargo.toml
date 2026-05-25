@@ -1,0 +1,8 @@
+[package]
+name = "part3"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = { version = "4", features = ["openssl"] }
+openssl = "0.10"
