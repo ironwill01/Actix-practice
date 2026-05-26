@@ -21,7 +21,6 @@ async fn main() -> std::io::Result<()> {
             errs.errors().iter().for_each(|err| {
                 println!("Error building TLS: {:?}", err.reason());
             });
-
             panic!("Error: could not create the SslAcceptor!");
         }
     };
@@ -29,7 +28,7 @@ async fn main() -> std::io::Result<()> {
     builder
         .set_private_key_file("key.pem", SslFiletype::PEM)
         .expect("Error finding the key.pem file!");
-
+    
     builder
         .set_certificate_chain_file("cert.pem")
         .expect("Error finding the cert.pem file!");

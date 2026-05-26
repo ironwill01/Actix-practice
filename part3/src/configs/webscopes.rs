@@ -1,31 +1,28 @@
 use {
-    actix_web::{HttpResponse, Responder, web},
+    actix_web::{HttpResponse, Responder, get, post, web},
     serde::Deserialize,
     std::sync::Mutex,
 };
 
 pub mod scopes {
-    use super::{Deserialize, HttpResponse, Mutex, Responder, web};
+    use super::{Deserialize, HttpResponse, Mutex, Responder, get, post, web};
 
     pub fn defaults(cfg: &mut web::ServiceConfig) {
-        cfg.service(
-            web::resource("/")
-                .app_data(web::Data::new(String::from("IW-WEB")))
-                .route(web::get().to(manual)),
-        );
+        cfg.app_data(web::Data::new(String::from("IW-WEB")))
+            .service(manual);
     }
 
-    // So data here web::Data<String> as we said is called an extractor
-    // for more info https://actix.rs/docs/extractors/ it teach you about data types
-    // which actix use to extract from URL or response
+    // web::Data<String> is an extractor.
+    // Extractors read data from the incoming request/app state.
+    #[get("/")]
     async fn manual(app_name: web::Data<String>) -> impl Responder {
         format!("Welcome to the {} !", app_name.as_str())
     }
 
     pub fn components(cfg: &mut web::ServiceConfig, data: web::Data<UsersDataBase>) {
         cfg.app_data(data.clone())
-            .route("/postuser", web::post().to(post_users))
-            .route("/users", web::get().to(users));
+            .service(post_users)
+            .service(users);
     }
 
     #[derive(Debug)]
@@ -43,8 +40,9 @@ pub mod scopes {
         }
     }
 
-    async fn post_users(req: String, users: web::Data<UsersDataBase>) -> impl Responder {
-        let mut users_lock = match users.users.lock() {
+    #[post("/postuser")]
+    async fn post_users(req: String, other_users: web::Data<UsersDataBase>) -> impl Responder {
+        let mut users_lock = match other_users.users.lock() {
             Ok(users_vec) => users_vec,
             Err(err) => {
                 eprintln!("Mutex poisoned: {}", err);
@@ -57,6 +55,7 @@ pub mod scopes {
         HttpResponse::Ok().body("User added")
     }
 
+    #[get("/users")]
     async fn users(data_base: web::Data<UsersDataBase>) -> impl Responder {
         let mut counter_lock = match data_base.counter.lock() {
             Ok(num) => num,
@@ -82,9 +81,8 @@ pub mod scopes {
         ))
     }
 
-    // You can find an good example here in this part 
     pub fn json_fn(cfg: &mut web::ServiceConfig) {
-        cfg.route("/json/{user}/{request}", web::post().to(echo_json));
+        cfg.service(echo_json);
     }
 
     #[derive(Deserialize, Debug)]
@@ -92,14 +90,18 @@ pub mod scopes {
         name: String,
         req: String,
     }
-    
-    // This part use two extractors Path and Json
+
+    // This handler uses two extractors: Path and Json.
+    #[post("/json/{user}/{request}")]
     async fn echo_json(
         path: web::Path<(String, String)>,
         json: web::Json<BasicData>,
     ) -> impl Responder {
         let path: (String, String) = path.into_inner();
+
         format!(
-            "user : {} with requst [ {} ]\njson info : {} , {}", path.0 , path.1 , json.name , json.req)
+            "user : {} with request [ {} ]\njson info : {} , {}",
+            path.0, path.1, json.name, json.req
+        )
     }
 }
