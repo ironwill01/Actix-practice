@@ -1,11 +1,14 @@
 use {
     actix_web::{HttpResponse, Responder, get, post, web},
-    serde::Deserialize,
+    serde::{Deserialize, Serialize},
     std::sync::Mutex,
 };
 
 pub mod scopes {
-    use super::{Deserialize, HttpResponse, Mutex, Responder, get, post, web};
+
+    use actix_web::web::Data;
+
+    use super::{Deserialize, HttpResponse, Mutex, Responder, Serialize, get, post, web};
 
     pub fn defaults(cfg: &mut web::ServiceConfig) {
         cfg.app_data(web::Data::new(String::from("IW-WEB")))
@@ -81,27 +84,87 @@ pub mod scopes {
         ))
     }
 
-    pub fn json_fn(cfg: &mut web::ServiceConfig) {
-        cfg.service(echo_json);
+    pub fn json_fn(cfg: &mut web::ServiceConfig, request_data: web::Data<AppState>) {
+        cfg.app_data(request_data.clone())
+            .service(echo_json)
+            .service(get_json_data);
     }
 
-    #[derive(Deserialize, Debug)]
-    struct BasicData {
+    #[derive(Deserialize, Serialize, Clone)]
+    struct BasicDataJson {
         name: String,
         req: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct SavedRequest {
+        user: String,
+        request: String,
+        name: String,
+        req: String,
+    }
+
+    pub struct AppState {
+        saved: Mutex<Vec<SavedRequest>>,
+    }
+
+    impl AppState {
+        pub fn new() -> Data<AppState> {
+            Data::new(Self {
+                saved: Mutex::new(Vec::new()),
+            })
+        }
     }
 
     // This handler uses two extractors: Path and Json.
     #[post("/json/{user}/{request}")]
     async fn echo_json(
         path: web::Path<(String, String)>,
-        json: web::Json<BasicData>,
+        json: web::Json<BasicDataJson>,
+        capture: web::Data<AppState>,
     ) -> impl Responder {
-        let path: (String, String) = path.into_inner();
+        let (user, request) = path.into_inner();
 
-        format!(
+        let saved_req = SavedRequest {
+            user: user.clone(),
+            request: request.clone(),
+            name: json.name.clone(),
+            req: json.req.clone(),
+        };
+
+        match capture.saved.lock() {
+            Ok(mut vec) => vec.push(saved_req),
+            Err(err) => {
+                eprintln!("Mutex poisoned: {}", err);
+                return HttpResponse::InternalServerError().body("Internal server error!");
+            }
+        };
+
+        HttpResponse::Ok().body(format!(
             "user : {} with request [ {} ]\njson info : {} , {}",
-            path.0, path.1, json.name, json.req
-        )
+            user, request, json.name, json.req
+        ))
+    }
+
+    #[get("/json/getdata")]
+    async fn get_json_data(request_data: web::Data<AppState>) -> impl Responder {
+        let mut json_string_list = String::new();
+
+        match request_data.saved.lock() {
+            Ok(vec) => {
+                vec.iter().for_each(|request| {
+                    json_string_list.push_str(&format!(
+                        "user {} , request : {} , name : {} , req : {}\n",
+                        request.user, request.request, request.name, request.req
+                    ));
+                });
+            }
+            Err(err) => {
+                eprintln!("Mutex poisoned: {}", err);
+                return HttpResponse::InternalServerError().body("Internal server error!");
+            }
+        };
+
+        HttpResponse::Ok().body(format!("Whole requsts that we got : {}", json_string_list))
     }
 }

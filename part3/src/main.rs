@@ -1,9 +1,7 @@
 mod configs;
 
 use {
-    actix_web::{App, HttpServer, guard, web},
-    configs::{UsersDataBase, components, defaults, json_fn},
-    openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
+    crate::configs::AppState, actix_web::{App, HttpServer, guard, web}, configs::{UsersDataBase, components, defaults, json_fn}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
 };
 
 // So the whole thing here was learning about extractor
@@ -11,7 +9,10 @@ use {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    
     let users_struct = UsersDataBase::new();
+
+    let request_data = AppState::new();
 
     println!("Starting HTTPS server at https://www.myapp.test:443");
 
@@ -39,15 +40,18 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let user_data = users_struct.clone();
+        let request_data = request_data.clone();
 
         App::new().service(
             web::scope("")
                 .guard(guard::Host("www.myapp.test"))
                 .configure(defaults)
                 .configure(move |cfg| {
-                    components(cfg, user_data);
+                    components(cfg , user_data);
                 })
-                .configure(json_fn),
+                .configure(move |cfg| {
+                    json_fn(cfg, request_data);
+                }),
         )
     })
     .bind_openssl("127.0.0.1:443", builder)?
