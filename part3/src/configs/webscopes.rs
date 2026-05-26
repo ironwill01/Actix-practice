@@ -1,10 +1,11 @@
 use {
     actix_web::{HttpResponse, Responder, web},
+    serde::Deserialize,
     std::sync::Mutex,
 };
 
 pub mod scopes {
-    use super::*;
+    use super::{Deserialize, HttpResponse, Mutex, Responder, web};
 
     pub fn defaults(cfg: &mut web::ServiceConfig) {
         cfg.service(
@@ -14,6 +15,9 @@ pub mod scopes {
         );
     }
 
+    // So data here web::Data<String> as we said is called an extractor
+    // for more info https://actix.rs/docs/extractors/ it teach you about data types
+    // which actix use to extract from URL or response
     async fn manual(app_name: web::Data<String>) -> impl Responder {
         format!("Welcome to the {} !", app_name.as_str())
     }
@@ -76,5 +80,28 @@ pub mod scopes {
             "[{}]\nthis page loaded {} time!",
             users_string, *counter_lock
         ))
+    }
+
+    // You can find an good example here in this part
+    pub fn json_fn(cfg: &mut web::ServiceConfig) {
+        cfg.route("/json/{user}/{request}", web::post().to(echo_json));
+    }
+
+    #[derive(Deserialize, Debug)]
+    struct BasicData {
+        name: String,
+        req: String,
+    }
+
+    // This part use two extractors Path and Json
+    async fn echo_json(
+        path: web::Path<(String, String)>,
+        json: web::Json<BasicData>,
+    ) -> impl Responder {
+        let path: (String, String) = path.into_inner();
+        format!(
+            "user : {} with requst [ {} ]\njson info : {} , {}",
+            path.0, path.1, json.name, json.req
+        )
     }
 }

@@ -1,10 +1,13 @@
 mod configs;
 
 use {
-    actix_web::{guard, web, App, HttpServer},
-    configs::{components, defaults, UsersDataBase},
+    actix_web::{App, HttpServer, guard, web},
+    configs::{UsersDataBase, components, defaults, json_fn},
     openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
+
+// So the whole thing here was learning about extractor
+// for more info just go to webscope library
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -44,7 +47,8 @@ async fn main() -> std::io::Result<()> {
                 .configure(defaults)
                 .configure(move |cfg| {
                     components(cfg, user_data);
-                }),
+                })
+                .configure(json_fn),
         )
     })
     .bind_openssl("127.0.0.1:443", builder)?

@@ -1,5 +1,5 @@
 pub mod webscopes;
 
 pub use {
-    webscopes::scopes::{defaults , UsersDataBase , components}
+    webscopes::scopes::{defaults , UsersDataBase , components , json_fn}
 };
