@@ -82,7 +82,7 @@ pub mod scopes {
         ))
     }
 
-    // You can find an good example here in this part
+    // You can find an good example here in this part 
     pub fn json_fn(cfg: &mut web::ServiceConfig) {
         cfg.route("/json/{user}/{request}", web::post().to(echo_json));
     }
@@ -92,7 +92,7 @@ pub mod scopes {
         name: String,
         req: String,
     }
-
+    
     // This part use two extractors Path and Json
     async fn echo_json(
         path: web::Path<(String, String)>,
@@ -100,8 +100,6 @@ pub mod scopes {
     ) -> impl Responder {
         let path: (String, String) = path.into_inner();
         format!(
-            "user : {} with requst [ {} ]\njson info : {} , {}",
-            path.0, path.1, json.name, json.req
-        )
+            "user : {} with requst [ {} ]\njson info : {} , {}", path.0 , path.1 , json.name , json.req)
     }
 }
