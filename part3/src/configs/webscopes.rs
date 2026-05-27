@@ -167,4 +167,35 @@ pub mod scopes {
 
         HttpResponse::Ok().body(format!("Whole requsts that we got : {}", json_string_list))
     }
+
+    pub fn query(cfg: &mut web::ServiceConfig) {
+        cfg
+        .service(query_index)
+        .service(query_index_advanced);
+    }
+
+    #[get("/query")]
+    async fn query_index(info: web::Query<Info>) -> String {
+        format!("Welcome {} {}!", info.name, info.lastname)
+    }
+
+    #[derive(Deserialize)]
+    pub struct Info {
+        name: String,
+        lastname: String,
+    }
+
+    #[derive(Deserialize)]
+    pub struct AdvancedInfo {
+        #[serde(rename = "advanced.name")]
+        name: String,
+
+        #[serde(rename = "advanced.lastname")]
+        lastname: String,
+    }
+
+    #[get("/queryadvanced")]
+    async fn query_index_advanced(info: web::Query<AdvancedInfo>) -> String {
+        format!("Customer info {} {}!", info.name, info.lastname)
+    }
 }

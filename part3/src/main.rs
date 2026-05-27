@@ -1,7 +1,10 @@
 mod configs;
 
 use {
-    crate::configs::AppState, actix_web::{App, HttpServer, guard, web}, configs::{UsersDataBase, components, defaults, json_fn}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
+    crate::configs::AppState,
+    actix_web::{App, HttpServer, guard, web},
+    configs::{UsersDataBase, components, defaults, json_fn, query},
+    openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
 
 // So the whole thing here was learning about extractor
@@ -9,7 +12,6 @@ use {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
     let users_struct = UsersDataBase::new();
 
     let request_data = AppState::new();
@@ -29,7 +31,7 @@ async fn main() -> std::io::Result<()> {
     builder
         .set_private_key_file("key.pem", SslFiletype::PEM)
         .expect("Error finding the key.pem file!");
-    
+
     builder
         .set_certificate_chain_file("cert.pem")
         .expect("Error finding the cert.pem file!");
@@ -47,11 +49,12 @@ async fn main() -> std::io::Result<()> {
                 .guard(guard::Host("www.myapp.test"))
                 .configure(defaults)
                 .configure(move |cfg| {
-                    components(cfg , user_data);
+                    components(cfg, user_data);
                 })
                 .configure(move |cfg| {
                     json_fn(cfg, request_data);
-                }),
+                })
+                .configure(query),
         )
     })
     .bind_openssl("127.0.0.1:443", builder)?
