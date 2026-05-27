@@ -168,6 +168,7 @@ pub mod scopes {
         HttpResponse::Ok().body(format!("Whole requsts that we got : {}", json_string_list))
     }
 
+    // quesry extractors in rust 
     pub fn query(cfg: &mut web::ServiceConfig) {
         cfg
         .service(query_index)
@@ -185,6 +186,8 @@ pub mod scopes {
         lastname: String,
     }
 
+    // using serde you can make your var named in URL synrax 
+    // like this /queryadvanced?advanced.name=nikan&advanced.lastname=sadeghi
     #[derive(Deserialize)]
     pub struct AdvancedInfo {
         #[serde(rename = "advanced.name")]
