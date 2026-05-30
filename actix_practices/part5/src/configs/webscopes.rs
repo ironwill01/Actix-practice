@@ -275,7 +275,7 @@ pub mod scopes {
 
     // Custom errors
     pub fn errors(cfg: &mut web::ServiceConfig) {
-        cfg.service(web::scope("/err").service(error_test).service(complex_error_test));
+        cfg.service(web::scope("/err").service(error_test).service(complex_error_test).service(error_helper));
     }
 
     #[derive(Debug, Error, Display)]
@@ -333,5 +333,25 @@ pub mod scopes {
         } else {
             Err(MyError::BadClientData)
         }
+    }
+
+
+    // Actix Web provides a set of error helper functions that are useful for generating specific HTTP error codes from other errors. 
+    //Here we convert SimpleErr, which doesn't implement the ResponseError trait, to a 400 (bad request) using map_err:
+
+    #[derive(Debug)]
+    struct SimpleErr {
+        name : String,
+    }
+
+
+    // I made some change here just to let you put your message as error
+    // it is pointless tho i still wanted work with the data myself
+    #[get("/error_helper/{request}")]
+    async fn error_helper(p : web::Path<String>) -> actix_web::Result<String> {
+        let result = Err(SimpleErr { name : p.to_string()});
+        result.map_err(|err| {
+            error::ErrorBadRequest(format!("Error 400 : {}" , err.name))
+        })
     }
 }
