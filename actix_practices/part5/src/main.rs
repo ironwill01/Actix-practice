@@ -2,14 +2,16 @@ mod configs;
 
 use {
     crate::configs::{AppState, custom_resp},
-    actix_web::{App, HttpServer, guard, web},
-    configs::{UsersDataBase, components, defaults, json_fn, query , errors},
+    actix_web::{App, HttpServer, guard, middleware::Logger, web},
+    configs::{UsersDataBase, components, defaults, errors, json_fn, query},
     openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
 
-// So the whole thing here was learning about extractor
+// This time its about Errors
 // for more info just go to webscope library
 
+// Error logging
+#[rustfmt::skip]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let users_struct = UsersDataBase::new();
@@ -40,13 +42,24 @@ async fn main() -> std::io::Result<()> {
         .check_private_key()
         .expect("Error: private key does not match certificate!");
 
+    // Wrapper around error logging
+    unsafe {
+        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_BACKTRACE", "1");
+    }
+
+    env_logger::init();
+
     HttpServer::new(move || {
         let user_data = users_struct.clone();
         let request_data = request_data.clone();
 
-        App::new().service(
+        let logger = Logger::default();
+
+        App::new().service( 
             web::scope("")
                 .guard(guard::Host("www.myapp.test"))
+                .wrap(logger)
                 .configure(defaults)
                 .configure(move |cfg| {
                     components(cfg, user_data);

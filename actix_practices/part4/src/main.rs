@@ -7,7 +7,7 @@ use {
     openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
 
-// So the whole thing here was learning about extractor
+// This time its about handlers
 // for more info just go to webscope library
 
 #[actix_web::main]

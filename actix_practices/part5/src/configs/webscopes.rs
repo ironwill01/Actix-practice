@@ -1,7 +1,11 @@
 use {
     actix_web::{
-        self, Either, HttpResponse, Responder, body::BoxBody, get, http::{header::ContentType , StatusCode}, post,
-        web, web::Data,
+        self, Either, HttpResponse, Responder,
+        body::BoxBody,
+        get,
+        http::{StatusCode, header::ContentType},
+        post, web,
+        web::Data,
     },
     derive_more::{self},
     futures::{future::ok, stream::once},
@@ -13,7 +17,8 @@ pub mod scopes {
 
     use super::{
         BoxBody, ContentType, Data, Deserialize, Either, HttpResponse, Mutex, Responder, Serialize,
-        actix_web::Error, derive_more::Display, derive_more::Error, get, ok, once, post, web, actix_web::error , StatusCode
+        StatusCode, actix_web::Error, actix_web::error, derive_more::Display, derive_more::Error,
+        get, ok, once, post, web,
     };
 
     pub fn defaults(cfg: &mut web::ServiceConfig) {
@@ -275,7 +280,13 @@ pub mod scopes {
 
     // Custom errors
     pub fn errors(cfg: &mut web::ServiceConfig) {
-        cfg.service(web::scope("/err").service(error_test).service(complex_error_test).service(error_helper));
+        cfg.service(
+            web::scope("/err")
+                .service(error_test)
+                .service(complex_error_test)
+                .service(error_helper)
+                .service(err_or_ok),
+        );
     }
 
     #[derive(Debug, Error, Display)]
@@ -335,23 +346,81 @@ pub mod scopes {
         }
     }
 
-
-    // Actix Web provides a set of error helper functions that are useful for generating specific HTTP error codes from other errors. 
+    // Actix Web provides a set of error helper functions that are useful for generating specific HTTP error codes from other errors.
     //Here we convert SimpleErr, which doesn't implement the ResponseError trait, to a 400 (bad request) using map_err:
 
     #[derive(Debug)]
     struct SimpleErr {
-        name : String,
+        name: String,
     }
-
 
     // I made some change here just to let you put your message as error
     // it is pointless tho i still wanted work with the data myself
     #[get("/error_helper/{request}")]
-    async fn error_helper(p : web::Path<String>) -> actix_web::Result<String> {
-        let result = Err(SimpleErr { name : p.to_string()});
-        result.map_err(|err| {
-            error::ErrorBadRequest(format!("Error 400 : {}" , err.name))
-        })
+    async fn error_helper(p: web::Path<String>) -> actix_web::Result<String> {
+        let result = Err(SimpleErr {
+            name: p.to_string(),
+        });
+        result.map_err(|err| error::ErrorBadRequest(format!("Error 400 : {}", err.name)))
     }
+
+    #[derive(Debug, Display, Error)]
+    enum RealPracticeErr {
+        #[display("Error : {name}")]
+        CustomErr { name: String },
+    }
+
+    // this is not good for all errors tho we just wanted to make an example this is how we can really handel errors
+    impl error::ResponseError for RealPracticeErr {
+        fn error_response(&self) -> HttpResponse<BoxBody> {
+            HttpResponse::build(self.status_code())
+                .insert_header(ContentType::html())
+                .body(self.to_string())
+        }
+
+        fn status_code(&self) -> StatusCode {
+            match *self {
+                RealPracticeErr::CustomErr { .. } => StatusCode::BAD_REQUEST,
+            }
+        }
+    }
+
+    #[get("/error_or_ok/{request}")]
+    async fn err_or_ok(p: web::Path<String>) -> Result<&'static str, RealPracticeErr> {
+        if *p == "ok" {
+            Ok("Ok")
+        } else {
+            Err(RealPracticeErr::CustomErr { name: p.to_string() })
+        }
+    }
+
+    // We can create way to use all those errors 
+    #[derive(Debug , Display , Error)]
+    enum UserErr {
+        #[display("An internal error occurred. Please try again later.")]
+        InternalError,
+    }
+
+
+    // Tho i didnt add any of this items to any real functions 
+    impl error::ResponseError for UserErr {
+        fn error_response(&self) -> HttpResponse<BoxBody> {
+            HttpResponse::build(self.status_code())
+            .insert_header(ContentType::html())
+            .body(self.to_string())
+        }
+
+        fn status_code(&self) -> StatusCode {
+            match *self {
+                UserErr::InternalError => StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+
+
+    // Actix logs all errors at the WARN log level. If an application's log level is set to DEBUG and RUST_BACKTRACE is enabled,
+    // also logged. These are configurable with environmental variables
+
+    
+
 }
