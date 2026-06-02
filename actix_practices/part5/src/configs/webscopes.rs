@@ -135,7 +135,6 @@ pub mod scopes {
         capture: web::Data<AppState>,
     ) -> impl Responder {
         let (user, request) = path.into_inner();
-
         let saved_req = SavedRequest {
             user: user.clone(),
             request: request.clone(),
@@ -206,6 +205,7 @@ pub mod scopes {
         lastname: String,
     }
 
+    // now you can use it like /queryadvanced?advanced.name=name&advanced.lastname=lastname
     #[get("/queryadvanced")]
     async fn query_index_advanced(info: web::Query<AdvancedInfo>) -> String {
         format!("Customer info {} {}!", info.name, info.lastname)
