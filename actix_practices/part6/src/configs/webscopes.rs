@@ -2,19 +2,18 @@ use {
     actix_web::{
         HttpRequest, HttpResponse, Responder, Result,
         body::BoxBody,
-        get, guard,
+        get, guard,post,
         http::header::{self, ContentType},
-        post,
         web::{self},
     },
     derive_more::Display,
-    serde::Deserialize,
+    serde::{Deserialize , Serialize},
     std::sync::Mutex,
 };
 
 pub mod scopes {
 
-    use super::*;
+use super::*;
     pub trait DataBase
     where
         Self: Default,
@@ -56,7 +55,7 @@ pub mod scopes {
         value: String,
     }
 
-    #[derive(Debug, Display, Default, Deserialize)]
+    #[derive(Debug, Display, Default, Deserialize , Serialize)]
     #[display("Requset with key value of : {key} : {value} from user {user} : {password}")]
     struct JsonUserData {
         user: String,
@@ -72,7 +71,7 @@ pub mod scopes {
 
     impl DataBase for UserAppState {}
 
-    #[post("/set_users_json/{user}/{password}")]
+    #[post("/user_json/{user}/{password}")]
     async fn set_users_json(
         p: web::Path<(String, String)>,
         json: web::Json<JsonData>,
@@ -98,16 +97,13 @@ pub mod scopes {
         HttpResponse::Ok().body("User added !")
     }
 
-    #[get("/get_users_json")]
+    #[get("/user_json")]
     async fn get_users_json(data: web::Data<UserAppState>) -> impl Responder {
         let _ = match data.users.lock() {
             Ok(users) => {
-                let body = users
-                    .iter()
-                    .map(|user| user.to_string())
-                    .collect::<Vec<_>>()
-                    .join("\n");
-                return HttpResponse::Ok().body(body);
+                return HttpResponse::Ok()
+                .insert_header(("content-type" , "application/json"))
+                .json(&*users);
             }
             Err(err) => {
                 eprintln!("Mutex guard poisoned : {}", err);

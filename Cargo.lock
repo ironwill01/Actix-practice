@@ -1111,6 +1111,7 @@ dependencies = [
  "log",
  "openssl",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
