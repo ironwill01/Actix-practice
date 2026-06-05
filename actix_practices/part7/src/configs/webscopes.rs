@@ -1,26 +1,20 @@
 use {
     actix_web::{
-        HttpResponse, Responder,
-        body::BoxBody,
-        get, post,
-        http::header::{ContentType},
+        Error, HttpResponse, Responder, error, get, post,
         web::{self},
-        error,
-        Error
     },
     derive_more::Display,
-    serde::{Deserialize , Serialize},
-    std::sync::Mutex,
     futures::StreamExt,
+    serde::{Deserialize, Serialize},
+    std::sync::Mutex,
 };
 
-
-// Dont pay attention we gotta use this real soon for payload 
+// Dont pay attention we gotta use this real soon for payload
 // we gonna load data to memory in chunks ( can be useful for loading video or any type of data )
-const MAX_SIZE : usize = 262_144;
+const MAX_SIZE: usize = 262_144;
 
 pub mod scopes {
-use super::*;
+    use super::*;
     pub trait DataBase
     where
         Self: Default,
@@ -30,23 +24,17 @@ use super::*;
         }
     }
 
-    pub fn simple_index(
-        cfg: &mut web::ServiceConfig,
-        users_and_request: web::Data<UserAppState>,
-        userdatabase: web::Data<UserDataBase>,
-    ) {
+    pub fn simple_index(cfg: &mut web::ServiceConfig, users_and_request: web::Data<UserAppState>) {
         cfg.service(
             web::scope("/simple")
                 .app_data(users_and_request)
-                .app_data(userdatabase)
                 .service(set_users_json)
                 .service(get_users_json)
-                .service(setusers)
-                .service(getusers)
+                .service(formpost),
         );
     }
 
-    // JSON type data we work with this in this part 
+    // JSON type data we work with this in this part
     #[derive(Debug, Display, Default, Deserialize)]
     #[display("Requset with key value of : {key} : {value}")]
     struct JsonData {
@@ -54,7 +42,7 @@ use super::*;
         value: String,
     }
 
-    #[derive(Debug, Display, Default, Deserialize , Serialize)]
+    #[derive(Debug, Display, Default, Deserialize, Serialize)]
     #[display("Requset with key value of : {key} : {value} from user {user} : {password}")]
     struct JsonUserData {
         user: String,
@@ -63,13 +51,12 @@ use super::*;
         value: String,
     }
 
-    #[derive(Default , Deserialize , Serialize)]
+    #[derive(Default, Deserialize, Serialize)]
     pub struct UserAppState {
         users: Mutex<Vec<JsonUserData>>,
     }
 
     impl DataBase for UserAppState {}
-
 
     // as you can see we extract JsonData using web::Json
     // you can also manually load the payload into memory and then desreialize it.
@@ -104,8 +91,8 @@ use super::*;
         let _ = match data.users.lock() {
             Ok(users) => {
                 return HttpResponse::Ok()
-                .insert_header(("content-type" , "application/json"))
-                .json(&*users);
+                    .insert_header(("content-type", "application/json"))
+                    .json(&*users);
             }
             Err(err) => {
                 eprintln!("Mutex guard poisoned : {}", err);
@@ -115,18 +102,20 @@ use super::*;
     }
 
     // This function basically load the data in memory in chunks with the size we set for it
-    // and then start to make json out of the struct itself if it derive from serde_json traits 
+    // and then start to make json out of the struct itself if it derive from serde_json traits
     // also for content encoding
     // actix Web automatically decompresses payloads. The following codecs are supported:
     // Brotli Gzip Deflate Zstd
     #[get("/user_json/manual")]
-    async fn get_users_json_manual(mut data : web::Payload) -> Result<HttpResponse, Error> {
+    // One more note about actix and chunking
+    // actix can automatically decodes chunked data using web::Payload as we used here
+    async fn get_users_json_manual(mut data: web::Payload) -> Result<HttpResponse, Error> {
         let mut body = web::BytesMut::new();
         while let Some(chunk) = data.next().await {
             let chuck = chunk?;
 
             // limit the max size of in-memory payload
-            if(body.len() + chuck.len()) > MAX_SIZE {
+            if (body.len() + chuck.len()) > MAX_SIZE {
                 return Err(error::ErrorBadRequest("Payload overflow"));
             }
             body.extend_from_slice(&chuck);
@@ -136,83 +125,42 @@ use super::*;
         Ok(HttpResponse::Ok().json(object))
     }
 
-    // Query type data skip for this part let it stay here anyway
-    #[derive(Deserialize, Default)]
-    struct UserInfo {
-        #[serde(rename = "User.name")]
-        name: String,
-        #[serde(rename = "User.pass")]
-        password: String,
+    // Actix is also provides multipart stream support with an external crate, called actix-multipart
+    // https://crates.io/crates/actix-multipart you can find more examples there
+
+    // Created this function to show form data method but didnt had enough data to work with
+    // Actix Web provides support for application/x-www-form-urlencoded encoded bodies with
+    // the web::Form extractor which resolves to the
+    // deserialized instance. The type of the instance must implement the Deserialize trait from serde.
+
+    // also The UrlEncoded future can resolve into an error in several cases :
+    // content type is not application/x-www-form-urlencoded
+    // transfer encoding is chunked.
+    // content-length is greater than 256k
+    // payload terminates with error.
+
+    #[derive(Deserialize)]
+    struct FormUser {
+        user: String,
     }
 
-    #[derive(Deserialize, Default)]
-    pub struct UserDataBase {
-        users: Mutex<Vec<UserInfo>>,
-    }
-
-    impl DataBase for UserDataBase {}
-
-    // i still found no use here even tho i impl respond_to there is no point ( literally )
-    impl Responder for UserDataBase {
-        type Body = BoxBody;
-        fn respond_to(self, _req: &actix_web::HttpRequest) -> HttpResponse<Self::Body> {
-            match self.users.lock() {
-                Ok(users) => {
-                    let body = users
-                        .iter()
-                        .map(|u| format!("{} : {}", u.name, u.password))
-                        .collect::<Vec<_>>()
-                        .join("\n");
-
-                    HttpResponse::Ok()
-                        .insert_header(ContentType::html())
-                        .body(body)
-                }
-                Err(err) => {
-                    eprintln!("Mutex poisoned : {}", err);
-                    HttpResponse::InternalServerError().body("Internal server error !")
-                }
-            }
-        }
-    }
-
-    #[get("/set_user")]
-    async fn setusers(
-        query: web::Query<UserInfo>,
-        data_base: web::Data<UserDataBase>,
-    ) -> impl Responder {
-        match data_base.users.lock() {
-            Ok(mut users) => users.push(UserInfo {
-                name: query.name.clone(),
-                password: query.password.clone(),
-            }),
-            Err(err) => {
-                eprintln!("Mutex guard poisoned : {}", err);
-                return HttpResponse::InternalServerError().body("Internal server error!");
-            }
-        }
-        HttpResponse::Ok().body("User added to the database !")
-    }
-
-    #[get("/get_users/{name}/{lastname}")]
-    async fn getusers(data_base: web::Data<UserDataBase> , path : web::Path<(String , String)>) -> impl Responder {
-        let mut body = String::new();
-        match data_base.users.lock() {
+    #[post("/formpost")]
+    async fn formpost(
+        form: web::Form<FormUser>,
+        database: web::Data<UserAppState>,
+    ) -> HttpResponse {
+        match database.users.lock() {
             Ok(users) => {
-                HttpResponse::Ok().body(users.iter().for_each(|users| {
-                    body.push_str(&format!(
-                        "User : {} with password : {}\n",
-                        users.name, users.password
-                    ));
-                }));
+                if let Some(user) = users.iter().find(|u| u.user == form.user) {
+                    HttpResponse::Ok().json(user)
+                } else {
+                    HttpResponse::NotFound().body(format!("User '{}' not found", form.user))
+                }
             }
             Err(err) => {
-                eprintln!("Mutex guard poisoned : {}", err);
-                return HttpResponse::InternalServerError().body("Internal server error!");
+                eprintln!("Mutex guard poisoned: {}", err);
+                HttpResponse::InternalServerError().body("Internal server error!")
             }
         }
-        let (firstname , lastname) = path.into_inner();
-        HttpResponse::Ok().body(format!("hey {} {}\n{}" , firstname , lastname , body))
     }
-
 }

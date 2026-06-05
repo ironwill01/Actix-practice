@@ -5,7 +5,7 @@ use {
         guard::{self},
         middleware::Logger,
         web::{self},
-    }, configs::{DataBase, UserAppState, simple_index , UserDataBase}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
+    }, configs::{DataBase, UserAppState, simple_index}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
 };
 
 // we running URL dispatch for this part 
@@ -13,8 +13,7 @@ use {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let users_request = UserAppState::new();
-    let user_database = UserDataBase::new();
-
+    
     // load SSL verification
     let mut builer = match SslAcceptor::mozilla_intermediate_v5(SslMethod::tls()) {
         Ok(builder) => builder,
@@ -46,7 +45,7 @@ async fn main() -> std::io::Result<()> {
                 .wrap(logger)
                 .guard(guard::Host("www.myapp.test"))
                 .configure(|cfg| {
-                    simple_index(cfg, users_request.clone() , user_database.clone());
+                    simple_index(cfg, users_request.clone());
                 }),
         )
     })
