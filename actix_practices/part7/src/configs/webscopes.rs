@@ -165,7 +165,7 @@ pub mod scopes {
     }
 
 
-    // This will stream big data loads using Payload !
+    // This will stream data loads using Payload !
     #[get("/streampayload")]
     async fn bigload(mut body : web::Payload) -> Result<HttpResponse , Error> {
         let mut bytes = web::BytesMut::new();
@@ -174,7 +174,6 @@ pub mod scopes {
             println!("Data : {:?}" , &data);
             bytes.extend_from_slice(&data);
         }
-
         Ok(HttpResponse::Ok().finish())
     }
 }
