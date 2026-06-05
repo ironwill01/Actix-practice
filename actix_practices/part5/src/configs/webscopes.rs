@@ -421,6 +421,4 @@ pub mod scopes {
     // Actix logs all errors at the WARN log level. If an application's log level is set to DEBUG and RUST_BACKTRACE is enabled,
     // also logged. These are configurable with environmental variables
 
-    
-
 }

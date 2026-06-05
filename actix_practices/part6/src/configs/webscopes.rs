@@ -37,8 +37,8 @@ use super::*;
                 .service(setusers)
                 .service(getusers)
                 .service(index)
-                .service(url_index)
                 // this one is actually for URL dispatch using it for `url_for`
+                .service(url_index)
                 .service(
                     web::resource("/get_users/{a}/{b}/")
                         .name("blud")
@@ -209,4 +209,7 @@ use super::*;
             .insert_header((header::LOCATION, url.as_str()))
             .finish())
     }
+
+    // Overall i found that most of the stuff we do about URL dispatch
+    // is already done in last chapters
 }
