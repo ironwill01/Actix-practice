@@ -41,7 +41,7 @@ use super::*;
                 .service(url_index)
                 .service(
                     web::resource("/get_users/{a}/{b}/")
-                        .name("blud")
+                        .name("foo")
                         .guard(guard::Get())
                         .to(HttpResponse::Ok),
                 ),
@@ -204,7 +204,7 @@ use super::*;
 
     #[get("/test/")]
     async fn url_index(req: HttpRequest) -> Result<HttpResponse> {
-        let url = req.url_for("blud", ["nikan", "sadeghi"])?;
+        let url = req.url_for("foo", ["nikan", "sadeghi"])?;
         Ok(HttpResponse::Found()
             .insert_header((header::LOCATION, url.as_str()))
             .finish())

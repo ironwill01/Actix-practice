@@ -13,6 +13,9 @@ use {
 // we gonna load data to memory in chunks ( can be useful for loading video or any type of data )
 const MAX_SIZE: usize = 262_144;
 
+// Basically request is how user sending data to our app or server
+// this is how we get data from users
+
 pub mod scopes {
     use super::*;
     pub trait DataBase
@@ -105,7 +108,7 @@ pub mod scopes {
     // and then start to make json out of the struct itself if it derive from serde_json traits
     // also for content encoding
     // actix Web automatically decompresses payloads. The following codecs are supported:
-    // Brotli Gzip Deflate Zstd
+    // Brotli Gzip Deflate std
     #[get("/user_json/manual")]
     // One more note about actix and chunking
     // actix can automatically decodes chunked data using web::Payload as we used here
@@ -163,7 +166,6 @@ pub mod scopes {
             }
         }
     }
-
 
     // This will stream data loads using Payload !
     #[get("/streampayload")]
