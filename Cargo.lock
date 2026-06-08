@@ -1143,6 +1143,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "part9"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "derive_more",
+ "env_logger",
+ "futures",
+ "log",
+ "openssl",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
