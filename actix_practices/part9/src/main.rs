@@ -2,7 +2,6 @@ pub mod configs;
 
 use {
     actix_web::{App, HttpServer, guard, middleware::Logger, web},
-    configs::default_configs,
     openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
 
@@ -41,8 +40,8 @@ async fn main() -> std::io::Result<()> {
             .service({
                 web::scope("")
                     .guard(guard::Host("www.myapp.test"))
-                    .configure(|cfg| {
-                        default_configs(cfg);
+                    .configure(|_cfg| {
+                        //default_configs(cfg);
                     })
             })
             .wrap(logger)
