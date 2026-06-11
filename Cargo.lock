@@ -1059,6 +1059,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "part10"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "derive_more",
+ "env_logger",
+ "futures",
+ "futures-util",
+ "log",
+ "openssl",
+ "rand",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "part2"
 version = "0.1.0"
 dependencies = [
