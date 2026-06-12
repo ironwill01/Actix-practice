@@ -1,13 +1,14 @@
 use {
     actix_web::{
-        Error, HttpResponse, Result,
+        Error, HttpResponse , Result,
         body::{BoxBody, MessageBody, to_bytes},
         dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
         get,
         http::{StatusCode, header::ContentType},
+        middleware::{Next, from_fn},
         web::{self, ServiceConfig},
     },
-    futures_util::future::{LocalBoxFuture},
+    futures_util::future::LocalBoxFuture,
     rand::random_range,
     std::future::{Ready, ready},
 };
@@ -207,7 +208,6 @@ pub mod scopes {
 
     // we can also wrap a middleware in warp_fn() in alternative
     // ill add it in next commit i assume
-
     pub fn configure_middleware_wrapped(cfg: &mut ServiceConfig) {
         cfg.service(
             web::scope("")
@@ -230,5 +230,119 @@ pub mod scopes {
                 "random number of today : {}",
                 random_range(1..=100)
             )))
+    }
+
+
+    // as you can see its almos the same logic as the last one but with less detail 
+    // if you whave something complex you better use factory no wrap_fn()
+    pub fn configure_middleware_addone_wrapped(cfg: &mut ServiceConfig) {
+        cfg.service(
+            web::scope("")
+            .wrap_fn(|req , service| {
+                let fut = service.call(req);
+                Box::pin(async move {
+                    match fut.await {
+                        Ok(response) => {
+                            let (httpreq , body) = response.into_parts();
+                            let bytes = to_bytes(body.into_body()).await?;
+
+                            let string_body = String::from_utf8_lossy(&bytes);
+
+                            // and holy bad syntax for this one ngl this pattern is cancer let me talk out of 
+                            // tutorial for myself
+                            let modified_body = if let Some(num) = string_body
+                            .split(":")
+                            .last()
+                            .and_then(|number| {
+                                number.trim().parse::<i32>().ok()
+                            }) 
+                            {
+                                println!("found number {} replacing with number {}" , &num , (&num + 1));
+                                string_body.replace(&num.to_string(), &(&num + 1).to_string())
+                            } else {
+                                string_body.to_string()
+                            };
+
+                            Ok(ServiceResponse::new(httpreq, HttpResponse::build(StatusCode::OK)
+                            .insert_header(ContentType::html())
+                            .body(modified_body)))
+                        } , 
+                        Err(err) => {
+                            Err(err)
+                        }
+                    }
+                })
+            }).service(random_one_addone_warapped)
+        );
+    }
+    
+    // lets create addone to the function using warp_fn()
+    #[get("/numone_wrapped_addone")]
+    async fn random_one_addone_warapped() -> Result<HttpResponse> {
+        Ok(HttpResponse::build(StatusCode::OK)
+            .insert_header(ContentType::html())
+            .body(format!(
+                "random number of today : {}",
+                random_range(1..=100)
+        )))
+    }
+
+    // we can also have functions as middleware with from_fn
+    // lets create addone to the function using warp_fn()
+    pub fn configure_middleware_addone_wrapped_fn(cfg: &mut ServiceConfig) {
+        cfg.service(
+            web::scope("")
+            .wrap(from_fn(middle_ware_fn))
+            .service(random_one_addone_warapped_fn)
+        );
+    }
+
+    async fn middle_ware_fn(
+        req : ServiceRequest ,
+        next : Next<impl MessageBody + 'static>
+    ) -> Result<ServiceResponse<impl MessageBody> , Error> {
+        // now you can pre process anything here 
+        println!("Loading addone middleware from fn ...");
+        // then call next
+        match next.call(req).await {
+            Ok(response) => {
+                let (req , body) = response.into_parts();
+                let bytes = to_bytes(body.into_body().boxed()).await?;
+                
+                let string_body = String::from_utf8_lossy(&bytes);
+
+                let modified_body = if let Some(num) = string_body
+                .split(":")
+                .last()
+                .and_then(|number| {
+                    number.trim().parse::<i32>().ok()
+                }) 
+                {
+                    println!("found number {} replacing with number {}" , &num , (&num + 1));
+                    string_body.replace(&num.to_string(), &(&num + 1).to_string())
+                } else {
+                    string_body.to_string()
+                };
+
+                return Ok(ServiceResponse::new(req, HttpResponse::build(StatusCode::OK)
+                                    .insert_header(ContentType::html())
+                                    .body(modified_body)));
+            } , 
+            Err(err) => {
+                return Err(err);
+            }
+        };
+        //in our case we just go with addone 
+    }
+
+
+    #[get("/numone_wrapped_addone_fn")]
+    async fn random_one_addone_warapped_fn() -> Result<HttpResponse> {
+        Ok(HttpResponse::build(StatusCode::OK)
+            .insert_header(ContentType::html())
+            .body(format!(
+                "random number of today : {}",
+                random_range(1..=100)
+        )))
     }
 }

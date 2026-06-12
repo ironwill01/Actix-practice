@@ -1,8 +1,12 @@
 mod configs;
 use {
-    crate::configs::configure_middleware_wrapped, actix_web::{
-        App, HttpServer, guard, middleware::Logger, web
-    }, configs::middleware_configure, openssl::ssl::{SslAcceptor , SslFiletype , SslMethod}
+    actix_web::{App, HttpServer, guard, middleware::Logger, web},
+    configs::middleware_configure,
+    configs::{
+        configure_middleware_addone_wrapped, configure_middleware_addone_wrapped_fn,
+        configure_middleware_wrapped,
+    },
+    openssl::ssl::{SslAcceptor, SslFiletype, SslMethod},
 };
 
 #[actix_web::main]
@@ -13,24 +17,22 @@ async fn main() -> std::io::Result<()> {
     }
 
     let mut builder = match SslAcceptor::mozilla_intermediate(SslMethod::tls()) {
-        Ok(builder) => {
-            builder
-        } ,
+        Ok(builder) => builder,
         Err(err) => {
             err.errors().iter().for_each(|err| {
-                println!("Error : {}" , err);
+                println!("Error : {}", err);
             });
             panic!()
         }
     };
 
     builder
-    .set_private_key_file("key.pem", SslFiletype::PEM)
-    .expect("Failed to load private key");
+        .set_private_key_file("key.pem", SslFiletype::PEM)
+        .expect("Failed to load private key");
 
     builder
-    .set_certificate_chain_file("cert.pem")
-    .expect("Failed to load certificate chain");
+        .set_certificate_chain_file("cert.pem")
+        .expect("Failed to load certificate chain");
 
     println!("Starting HTTPS server at https://www.myapp.test:433");
 
@@ -38,15 +40,18 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let logger = Logger::default();
-        App::new().service({
-            web::scope("")
-            .guard(guard::Host("www.myapp.test"))
-            .configure(|cfg| {
-                middleware_configure(cfg);
-                configure_middleware_wrapped(cfg);
+        App::new()
+            .service({
+                web::scope("")
+                    .guard(guard::Host("www.myapp.test"))
+                    .configure(|cfg| {
+                        middleware_configure(cfg);
+                        configure_middleware_wrapped(cfg);
+                        configure_middleware_addone_wrapped(cfg);
+                        configure_middleware_addone_wrapped_fn(cfg);
+                    })
             })
-        })
-        .wrap(logger)
+            .wrap(logger)
     })
     .bind_openssl("127.0.0.1:433", builder)?
     .run()
