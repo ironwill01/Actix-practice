@@ -1,13 +1,8 @@
 mod configs;
 use {
-    actix_web::{
-        App , HttpServer , 
-        middleware::{Logger},
-        web,
-        guard
-    },
-    openssl::ssl::{SslAcceptor , SslFiletype , SslMethod},
-    configs::{middleware_configure}
+    crate::configs::configure_middleware_wrapped, actix_web::{
+        App, HttpServer, guard, middleware::Logger, web
+    }, configs::middleware_configure, openssl::ssl::{SslAcceptor , SslFiletype , SslMethod}
 };
 
 #[actix_web::main]
@@ -48,6 +43,7 @@ async fn main() -> std::io::Result<()> {
             .guard(guard::Host("www.myapp.test"))
             .configure(|cfg| {
                 middleware_configure(cfg);
+                configure_middleware_wrapped(cfg);
             })
         })
         .wrap(logger)

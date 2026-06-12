@@ -7,7 +7,7 @@ use {
         http::{StatusCode, header::ContentType},
         web::{self, ServiceConfig},
     },
-    futures_util::future::LocalBoxFuture,
+    futures_util::future::{LocalBoxFuture},
     rand::random_range,
     std::future::{Ready, ready},
 };
@@ -22,6 +22,8 @@ use {
 // Also middlewares are registered for each `App` , `scope` or `Resource`
 
 pub mod scopes {
+
+    use futures::FutureExt;
 
     use super::*;
 
@@ -83,11 +85,13 @@ pub mod scopes {
 
     // now let create an function and config so we can use it
     pub fn middleware_configure(cfg: &mut ServiceConfig) {
-        cfg.service({ 
-        web::scope("/users")
-        .service(random)
-        .service(random_one).wrap(AddOne) 
-    });
+        cfg.service({
+            web::scope("/users")
+                .service(random)
+                .wrap(PrintSomething)
+                .service(random_one)
+                .wrap(AddOne)
+        });
     }
 
     #[get("/num")]
@@ -152,7 +156,7 @@ pub mod scopes {
             Box::pin(async move {
                 match fut.await {
                     Ok(service) => {
-                        // we get the body and requset 
+                        // we get the body and requset
                         let (req, res) = service.into_parts();
                         let body = res.into_body(); // HttpResponse<B> → B
                         let bytes = to_bytes(body).await;
@@ -166,7 +170,7 @@ pub mod scopes {
                                     .last()
                                     .and_then(|s| s.trim().parse::<i32>().ok())
                                 {
-                                    println!("num is : {} replace with new num {}" , &num , &num + 1);
+                                    println!("num is : {} replace with new num {}", &num, &num + 1);
                                     original_body.replace(&num.to_string(), &(num + 1).to_string())
                                 } else {
                                     original_body.into_owned()
@@ -202,6 +206,29 @@ pub mod scopes {
     }
 
     // we can also wrap a middleware in warp_fn() in alternative
-    // ill add it in next commit i assume 
-    
+    // ill add it in next commit i assume
+
+    pub fn configure_middleware_wrapped(cfg: &mut ServiceConfig) {
+        cfg.service(
+            web::scope("")
+                .wrap_fn(|req, srv| {
+                    println!("Request called: {}", req.path());
+                    srv.call(req).map(|res| {
+                        println!("Calling response ...");
+                        res
+                    })
+                })
+                .service(random_one_wrapped),
+        );
+    }
+
+    #[get("/numone_wrapped")]
+    async fn random_one_wrapped() -> Result<HttpResponse> {
+        Ok(HttpResponse::build(StatusCode::OK)
+            .insert_header(ContentType::html())
+            .body(format!(
+                "random number of today : {}",
+                random_range(1..=100)
+            )))
+    }
 }
