@@ -5,13 +5,19 @@ edition = "2024"
 
 
 [dependencies]
+# Default imports
 actix-web = { version = "4", features = ["openssl"] }
+env_logger = "0.8"
+log = "0.4"
 openssl = "0.10"
+
+# This is for actix cookies 
+actix-session = { version = "0.11.0", features = ["cookie-session"] }
+
+# This is for custom functions or context wise
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
 derive_more = "2.1.1"
-env_logger = "0.8"
-log = "0.4"
 futures = "0.3"
 rand = "0.10.1"
 futures-util = "0.3.32"

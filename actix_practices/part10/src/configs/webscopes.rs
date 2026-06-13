@@ -9,6 +9,9 @@ use {
         post,
         web::{self, ServiceConfig},
     },
+    actix_session::{
+        Session,
+    },
     derive_more::core::clone::Clone,
     futures::FutureExt,
     futures_util::future::LocalBoxFuture,
@@ -397,7 +400,7 @@ pub mod scopes {
                     let json = vec.serialize(serializer);
                     Ok(json?)
                 }
-                Err(err) => Err(serde::ser::Error::custom("Mutex was poisoned")),
+                Err(_err) => Err(serde::ser::Error::custom("Mutex was poisoned")),
             }
         }
     }
@@ -432,5 +435,40 @@ pub mod scopes {
     #[get("/json_get")]
     async fn json_user_get(data_vec: web::Data<JsonAppState>) -> Result<HttpResponse> {
         Ok(HttpResponse::build(StatusCode::OK).json(data_vec))
+    }
+
+    // Actix also provide an solution for session management 
+    // which is included in actix_middleware 
+    // lets look at the actix official doc for here : 
+    // "By default, only cookie session backend is implemented. Other backend implementations can be added."
+    // CookieSession uses cookies as session storage. 
+    // CookieSessionBackend creates sessions which are limited to storing fewer than 4000 bytes of data, 
+    // as the payload must fit into a single cookie. 
+    // An internal server error is generated if a session contains more than 4000 bytes.
+    
+    pub fn cookie_configure(cfg : &mut ServiceConfig) {
+        cfg.service(
+            web::scope("")
+            .service(counter_cookies)
+        );
+    }
+
+
+    #[get("/cookie")]
+    async fn counter_cookies(session : Session) -> Result<HttpResponse , Error> {
+
+        // access session data
+        if let Some(count) = session.get::<i32>("counter")? {
+            session.insert("counter", count + 1)?;
+        } else {
+            session.insert("counter", 1)?;
+        }
+
+        // 
+
+        Ok(HttpResponse::Ok().body(
+                format!("Count is {:?} !" , session.get::<i32>("counter")?.unwrap())
+            )
+        )
     }
 }
