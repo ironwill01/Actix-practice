@@ -5,12 +5,19 @@ use {
         dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
         get,
         http::{StatusCode, header::ContentType},
-        middleware::{Next, from_fn},
+        middleware::{self , Next, from_fn},
+        post,
         web::{self, ServiceConfig},
     },
+    derive_more::core::clone::Clone,
+    futures::FutureExt,
     futures_util::future::LocalBoxFuture,
     rand::random_range,
-    std::future::{Ready, ready},
+    serde::{Deserialize, Serialize},
+    std::{
+        future::{Ready, ready},
+        sync::Mutex,
+    },
 };
 
 // Middleware one of the most important practices i should have
@@ -23,9 +30,6 @@ use {
 // Also middlewares are registered for each `App` , `scope` or `Resource`
 
 pub mod scopes {
-
-    use futures::FutureExt;
-
     use super::*;
 
     // There are two steps in middleware processing.
@@ -181,7 +185,7 @@ pub mod scopes {
                                     req,
                                     HttpResponse::build(StatusCode::OK)
                                         .insert_header(ContentType::html())
-                                        .body(modified_text),
+                                        .body(format!("<h2>{}</h2>", modified_text)),
                                 ))
                             }
                             Err(_err) => Ok(ServiceResponse::new(
@@ -347,5 +351,86 @@ pub mod scopes {
                 "random number of today : {}",
                 random_range(1..=100)
             )))
+    }
+    // we can add default headers using middlewares
+
+    pub fn json_configs(cfg: &mut ServiceConfig , data_vec: web::Data<JsonAppState>) {
+        cfg.service(
+            web::scope("/json")
+            .app_data(data_vec.clone())
+            .wrap(middleware::DefaultHeaders::new().add(ContentType::json()))
+            .service(json_user_set)
+            .service(json_user_get)
+        );
+    }
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    struct Jsondata {
+        user: String,
+        id: i32,
+    }
+
+    #[derive(Debug)]
+    pub struct JsonAppState {
+        data_vec: Mutex<Vec<Jsondata>>,
+    }
+
+    impl JsonAppState {
+        pub fn new() -> web::Data<JsonAppState> {
+            web::Data::new(
+                Self { 
+                    data_vec : Mutex::new(
+                        Vec::new()
+                    ) 
+                }
+            )
+        }
+    }
+
+    impl Serialize for JsonAppState {
+        fn serialize<S>(&self, serializer: S) -> std::prelude::v1::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            match self.data_vec.lock() {
+                Ok(vec) => {
+                    let json = vec.serialize(serializer);
+                    Ok(json?)
+                }
+                Err(err) => Err(serde::ser::Error::custom("Mutex was poisoned")),
+            }
+        }
+    }
+
+    #[post("/json_set")]
+    async fn json_user_set(
+        json: web::Json<Jsondata>,
+        data_vec: web::Data<JsonAppState>,
+    ) -> Result<HttpResponse> {
+        let json_data = Jsondata {
+            user: json.user.clone(),
+            id: json.id,
+        };
+
+        match data_vec.data_vec.lock() {
+            Ok(mut vec) => {
+                vec.push(json_data.clone());
+            }
+            Err(err) => {
+                eprintln!("Mutex poisoned: {}", err);
+                return Ok(HttpResponse::InternalServerError().body("Internal server error!"));
+            }
+        }
+
+        println!("Request json added : {} with id {}", json.user, json.id);
+
+        Ok(HttpResponse::build(StatusCode::OK)
+            .insert_header(ContentType::json())
+            .json(json_data))
+    }
+
+    #[get("/json_get")]
+    async fn json_user_get(data_vec: web::Data<JsonAppState>) -> Result<HttpResponse> {
+        Ok(HttpResponse::build(StatusCode::OK).json(data_vec))
     }
 }
