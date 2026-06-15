@@ -3,21 +3,21 @@ use {
    actix_session::{
         SessionMiddleware,
         storage::CookieSessionStore,
-    }, 
-    actix_web::{ 
-        App, HttpServer, cookie::Key, guard, middleware::Logger, web
-    }, 
-    configs::{
+    }, actix_web::{ 
+        App, HttpServer, cookie::Key, guard, http::StatusCode, middleware::{
+            ErrorHandlers, Logger
+        }, web
+    }, configs::{
         JsonAppState, 
         configure_middleware_addone_wrapped, 
         configure_middleware_addone_wrapped_fn, 
         configure_middleware_wrapped, 
+        cookie_configure, 
         json_configs, 
-        middleware_configure,
-        cookie_configure
-    }, 
-    env_logger::{self, Env}, 
-    openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
+        middleware_configure ,
+        error_config,
+        my_err,
+    }, env_logger::{self, Env}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
 };
 
 #[actix_web::main]
@@ -51,6 +51,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
     let json_state = JsonAppState::new();
+    
     HttpServer::new(move || {
         let logger = Logger::default();
         let custom_logger = Logger::new("%s %a %{User-Agent}i");
@@ -58,9 +59,10 @@ async fn main() -> std::io::Result<()> {
             .service({
                 // If you want to test anything here just comment other functions so you can try
                 web::scope("")
+                    .wrap(ErrorHandlers::new().handler(StatusCode::INTERNAL_SERVER_ERROR, my_err))
                     .app_data(json_state.clone())
                     .guard(guard::Host("www.myapp.test"))
-                    // .configure(middleware_configure)
+                    .configure(middleware_configure)
                     // .configure(configure_middleware_wrapped)
                     // .configure(configure_middleware_addone_wrapped)
                     // .configure(configure_middleware_addone_wrapped_fn)
@@ -68,12 +70,13 @@ async fn main() -> std::io::Result<()> {
                     .configure(|cfg | { 
                         json_configs(cfg , json_state.clone())
                     })
+                    .configure(error_config)
                     .configure(cookie_configure)
                     .wrap(custom_logger)
                     .wrap(
                         // create cookie based session middleware 
                         // can send data over the middleware to other functions 
-                        SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0u8; 64]))
+                        SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0u8 ; 64]))
                         .cookie_secure(false)
                         .build()
                     )

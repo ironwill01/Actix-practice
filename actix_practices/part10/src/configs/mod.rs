@@ -7,4 +7,6 @@ pub use webscopes::scopes::{
     , json_configs
     , cookie_configure
     , JsonAppState
+    , my_err
+    , error_config
 };

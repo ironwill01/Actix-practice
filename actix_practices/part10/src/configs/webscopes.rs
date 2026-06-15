@@ -1,13 +1,37 @@
 use {
     actix_web::{
         Error, HttpResponse, Result,
-        body::{BoxBody, MessageBody, to_bytes},
-        dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+        body::{
+            BoxBody
+            , MessageBody, 
+            to_bytes
+        },
+        dev::{
+            self,
+            Service, 
+            ServiceRequest, 
+            ServiceResponse, 
+            Transform, 
+            forward_ready
+        },
         get,
-        http::{StatusCode, header::ContentType},
-        middleware::{self , Next, from_fn},
+        http::{
+            StatusCode, 
+            header::{
+                self , 
+                ContentType
+            }
+        },
+        middleware::{
+            self , 
+            Next, from_fn , 
+            ErrorHandlerResponse,
+        },
         post,
-        web::{self, ServiceConfig},
+        web::{
+            self
+            , ServiceConfig
+        },
     },
     actix_session::{
         Session,
@@ -99,6 +123,7 @@ pub mod scopes {
                 .wrap(PrintSomething)
                 .service(random_one)
                 .wrap(AddOne)
+                .service(test_my_error)
         });
     }
 
@@ -311,15 +336,20 @@ pub mod scopes {
         req: ServiceRequest,
         next: Next<impl MessageBody + 'static>,
     ) -> Result<ServiceResponse<impl MessageBody>, Error> {
+        
         // now you can pre process anything here
         println!("Loading addone middleware from fn ...");
+        let mut string_body = String::new();
+
         // then call next
         match next.call(req).await {
             Ok(response) => {
+
+                // common pattern to get the body as bytes
                 let (req, body) = response.into_parts();
                 let bytes = to_bytes(body.into_body().boxed()).await?;
 
-                let string_body = String::from_utf8_lossy(&bytes);
+                string_body = String::from_utf8_lossy(&bytes).to_string();
 
                 let modified_body = if let Some(num) = string_body
                     .split(":")
@@ -355,6 +385,7 @@ pub mod scopes {
                 random_range(1..=100)
             )))
     }
+
     // we can add default headers using middlewares
 
     pub fn json_configs(cfg: &mut ServiceConfig , data_vec: web::Data<JsonAppState>) {
@@ -453,22 +484,72 @@ pub mod scopes {
         );
     }
 
-
     #[get("/cookie")]
     async fn counter_cookies(session : Session) -> Result<HttpResponse , Error> {
 
         // access session data
+        // but i still dont create myself 
         if let Some(count) = session.get::<i32>("counter")? {
             session.insert("counter", count + 1)?;
         } else {
             session.insert("counter", 1)?;
         }
 
-        // 
-
         Ok(HttpResponse::Ok().body(
                 format!("Count is {:?} !" , session.get::<i32>("counter")?.unwrap())
             )
         )
+    }
+
+    // Now error handling in middlewares 
+    // you can create your own errors in actix
+    
+    // ***IMPORTANT*** 
+    // after binding this middleware error to an status code 
+    // this work for any status code that we bind this into it
+    // and you dont need direct any handle for the middleware
+
+
+    // `B stand for body here
+    // one more note is that ServiceResponse can have default generic 
+    // you can change it using boxbody as your type or anything basically
+    pub fn my_err<B>(mut response : dev::ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
+
+        let request = response.request().clone();
+
+        let new_reponse = HttpResponse::build(response.status())
+        .insert_header((header::CONTENT_TYPE , ContentType::plaintext()))
+        .body("Something went wrong on our end!");
+
+        // this is another way of doing this
+        // response.response_mut().headers_mut().insert(
+        //     // same as how we return contenttype as inserted header 
+        //     // we for error insert other headers to the response
+        //     // so we can create the error
+        //    header::CONTENT_TYPE,
+        //   header::HeaderValue::from_static("Error")
+        // );
+
+        // another note from actix doc itself
+        // You can use the ErrorHandlers::handler() method to register a custom error handler for a specific status code.
+        // existing response or create a completly new one. The error handler can return a response immediately or return a future that resolves
+        // into a response.
+        Ok(ErrorHandlerResponse::Response(
+                ServiceResponse::new(request, new_reponse).map_into_right_body()
+            )
+        )
+    }
+
+    pub fn error_config(cfg : &mut ServiceConfig) {
+        cfg.service(
+            web::scope("")
+            .service(test_my_error)
+        );
+    }
+
+    // For test now we can just use a function to see how does it work
+    #[get("/my_error")]
+    async fn test_my_error() -> Result<HttpResponse> {
+        Ok(HttpResponse::InternalServerError().finish())
     }
 }
