@@ -14,7 +14,6 @@ use super::*;
 
     pub fn default_config(cfg: &mut ServiceConfig) {
         cfg.service(home_page).service(
-            home_page).service(
             web::resource("/")
                 .name("homepage")
                 .guard(guard::Get())
@@ -42,9 +41,11 @@ use super::*;
     async fn home_redirect(req: HttpRequest) -> Result<HttpResponse> {
         let url = req.url_for("homepage", ["/"])?;
         println!("Requset for mainpage redirecting ...");
-        Ok(HttpResponse::Found()
+        Ok(
+            HttpResponse::Found()
             .insert_header((header::LOCATION , url.as_str()))
-            .finish())
+            .finish()
+        )
     }
 
     pub fn custom_configs(cfg: &mut ServiceConfig) {

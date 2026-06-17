@@ -17,7 +17,16 @@ use {
         middleware_configure ,
         error_config,
         my_err,
-    }, env_logger::{self, Env}, openssl::ssl::{SslAcceptor, SslFiletype, SslMethod}
+    }, 
+    env_logger::{
+        self, 
+        Env
+    }, 
+    openssl::ssl::{
+        SslAcceptor, 
+        SslFiletype, 
+        SslMethod
+    }
 };
 
 #[actix_web::main]
@@ -47,7 +56,7 @@ async fn main() -> std::io::Result<()> {
 
     println!("Starting HTTPS server at https://www.myapp.test:433");
 
-    // We can make an env 
+    // We can make an custom env 
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
     let json_state = JsonAppState::new();
