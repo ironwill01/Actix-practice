@@ -1,0 +1,13 @@
+[package]
+name = "part12"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = { version = "4", features = ["openssl"] }
+actix-files = "0.6.10"
+
+env_logger = "0.8"
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+openssl = "0.10"
