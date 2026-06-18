@@ -6,8 +6,11 @@ edition = "2024"
 [dependencies]
 actix-web = { version = "4", features = ["openssl"] }
 actix-files = "0.6.10"
+askama = "0.14.0"
 
 env_logger = "0.8"
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
 openssl = "0.10"
+
+

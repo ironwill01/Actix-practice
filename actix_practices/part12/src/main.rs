@@ -48,7 +48,8 @@ async fn main() -> std::io::Result<()> {
             web::scope("")
             .wrap(logger)
             // Now lets load static_files into the server
-            .service(Files::new("/static/html" , "./actix_practices/static/html"))
+            // Personal note : im proud thats it 
+            .service(Files::new("/src/templates" , "./actix_practices/part12/src/templates"))
             .guard(guard::Host("www.myapp.test"))
             .configure(default_configs)
         })
