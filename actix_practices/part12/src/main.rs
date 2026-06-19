@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    println!("Starting HTTPS server at https://www.myapp.test:433");
+    println!("Starting HTTPS server at https://www.myapp.test:443");
 
     HttpServer::new(move || {
         let logger = Logger::new("%s %a %{User-Agent}i");
@@ -47,15 +47,26 @@ async fn main() -> std::io::Result<()> {
         App::new().service({
             web::scope("")
             .wrap(logger)
+
             // Now lets load static_files into the server
-            // Personal note : im proud thats it 
-            .service(Files::new("/src/templates" , "./actix_practices/part12/src/templates"))
+            // Personal note : im proud thats it
+
+            // To serve files from specific directories and sub-directories, Files can be used. 
+            // Files must be registered with an App::service() method, otherwise it will be unable to serve sub-paths.
+
+            // By default files listing for sub-directories is disabled. Attempt to load directory listing will return 404 Not Found response. 
+            // To enable files listing, use Files::show_files_listing() method.
+
+            // Instead of showing files listing for a directory, it is possible to redirect to a specific index file. 
+            // Use the Files::index_file() method to configure this redirect.
+             
+            .service(Files::new("/static" , "./actix_practices/part12/src/templates").show_files_listing())
             .guard(guard::Host("www.myapp.test"))
             .configure(default_configs)
         })
     })
-    .bind_openssl("127.0.0.1:433", builder)?
+    .bind_openssl("127.0.0.1:443", builder)?
     .run()
     .await
 
-}
+}   
