@@ -2,19 +2,25 @@
 
 Daily practice repository while learning the **Actix Web** framework in Rust.
 
-I'm going through the official Actix book/tutorials section by section, implementing concepts from basic routing to middleware, error handling, databases, and more.
+I'm going through the official [Actix Web book/tutorials](https://actix.rs/docs/) section by section — implementing concepts hands-on from basic routing all the way to middleware, error handling, static files, templating, and more.
 
 ## Progress
 
-- **Part 1–9 completed** — Basics, extractors, middleware, error handling, etc.
-- Currently working on advanced topics daily.
+- **Parts 1–9 completed** — Core fundamentals: routing, extractors, middleware, error handling, responses, etc.
+- **Parts 10–12** — Middleware deep dive, CORS, static files + templating (Askama).
+- Currently working on advanced topics daily (testing, databases, auth, etc.).
 
-## How to Run
+**Total commits**: 37+ (as of June 2026)
+
+## Project Structure
 
 ```bash
-# Run the main application
-cargo run
-
-# Or navigate to a specific part
-cd actix_practices/part9
-cargo run
+.
+├── src/                    # Root workspace binary (currently minimal)
+├── actix_practices/
+│   ├── part1/              # Basic server & routing
+│   ├── part2/              # ...
+│   ├── ...
+│   ├── part12/             # Static files + HTML templating
+├── Cargo.toml              # Workspace root
+└── README.md
