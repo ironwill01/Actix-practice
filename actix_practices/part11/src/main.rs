@@ -22,6 +22,12 @@ use {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+
+    unsafe {
+        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_BACKTRACE", "1");
+    }
+
     let mut builder = match SslAcceptor::mozilla_intermediate(SslMethod::tls()) {
         Ok(builder) => builder ,
         Err(errors) => {

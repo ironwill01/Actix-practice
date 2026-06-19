@@ -115,7 +115,7 @@ pub mod scopes {
         }
     }
 
-    // now let create an function and config so we can use it
+    // now let create an function and config it so we can use it
     pub fn middleware_configure(cfg: &mut ServiceConfig) {
         cfg.service({
             web::scope("/users")
@@ -424,7 +424,7 @@ pub mod scopes {
     impl Serialize for JsonAppState {
         fn serialize<S>(&self, serializer: S) -> std::prelude::v1::Result<S::Ok, S::Error>
         where
-            S: serde::Serializer,
+            S : serde::Serializer,
         {
             match self.data_vec.lock() {
                 Ok(vec) => {
@@ -513,7 +513,7 @@ pub mod scopes {
     // `B stand for body here
     // one more note is that ServiceResponse can have default generic 
     // you can change it using boxbody as your type or anything basically
-    pub fn my_err<B>(mut response : dev::ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
+    pub fn my_err<B>(response : dev::ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
 
         let request = response.request().clone();
 
