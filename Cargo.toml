@@ -8,4 +8,4 @@ actix-web = "4"
 tokio = { version = "1.52.3", features = ["full"] }
 
 [workspace]
-members = ["./actix_practices/part*"]
+members = ["./actix_practices/part*" , "./actix_practices/review_*"]
