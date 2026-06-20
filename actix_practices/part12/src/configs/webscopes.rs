@@ -24,7 +24,7 @@ use {
 };
 
 // Saved the template path 
-const TEMPLATE_PATH : & 'static str = "./actix_practices/part12/src/templates";  
+const TEMPLATE_PATH : & 'static str = "./actix_practices/part12/src/templates";
 
 pub mod webscopes {
     use super::*;

@@ -4,7 +4,8 @@ use {
     configs::{
         default_configs
     },
-    actix_files::Files, actix_web::{
+    actix_files::Files
+    , actix_web::{
         App, HttpServer, guard, middleware:: {
             Logger
         }, web
