@@ -18,6 +18,8 @@ log = "0.4"
 serde = { version = "1", features = ["derive"] }
 openssl = "0.10"
 serde_json = "1.0"
-derive_more = "2.1.1"
+derive_more = { version = "2.1.1", features = ["full"] }
 futures = "0.3"
 actix-cors = "0.7.1"
+urlencoding = "2.1"
+tokio = { version = "1", features = ["full"] }

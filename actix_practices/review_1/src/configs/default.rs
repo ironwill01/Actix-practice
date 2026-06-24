@@ -19,12 +19,10 @@ use {
 };
 
 pub fn default_configs(cfg : &mut web::ServiceConfig) {
-    cfg.service(
-      web::scope("")
-      .service(homepage)
-      .service(favicon)
-      .service(robots)
-    );
+    cfg
+    .service(homepage)
+    .service(favicon)
+    .service(robots);
 }
 
 // Loading homepage as file ( no askama here atleast for now )

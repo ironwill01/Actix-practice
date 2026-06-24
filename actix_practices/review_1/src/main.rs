@@ -2,7 +2,7 @@ mod configs;
 use {
     actix_files::Files, 
     actix_web::{
-        App, HttpServer, middleware, web
+        App, HttpServer, middleware
     },
     openssl::ssl::{
         SslAcceptor, SslFiletype, SslMethod
@@ -11,11 +11,11 @@ use {
         Env
     },
     configs::{
-        default_configs
-    }
+        default_configs,
+        signpage_config,
+        UserMessage
+    },
 };
-
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
@@ -46,15 +46,18 @@ async fn main() -> std::io::Result<()> {
 
     println!("Starting HTTPS server at https://www.myapp.test:443");
     
+    let users_data = UserMessage::new();
+
     HttpServer::new(move || {
         let logger = middleware::Logger::new("%s %a %{User-Agent}i");
-
         App::new()
         .service(Files::new("static", "./actix_practices/review_1/src/templates").show_files_listing())
-        .service(
-            web::scope("")
-            .configure(default_configs)
-        ).wrap(logger)
+        .configure(default_configs)
+        .configure(|cfg| {
+                signpage_config(cfg, users_data.clone())
+            }
+        )
+        .wrap(logger)
     })
     .bind_openssl("127.0.0.1:443", builder)?
     .run()
