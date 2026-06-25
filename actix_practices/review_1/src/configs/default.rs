@@ -2,20 +2,23 @@
 //! Where all of default handles exist 
 
 use {
-    super::TEMPLATE_PATH,
+    super::{
+        TEMPLATE_PATH ,
+        UserState ,
+        UserTemplate
+    } , 
+    actix_files::NamedFile ,
     actix_web::{
-        HttpResponse , HttpRequest , Result
-        , get 
-        , web::{
-            self
+        HttpRequest, 
+        HttpResponse, 
+        Result, 
+        get,
+        http::header::ContentType,
+        web::{
+            self 
         }
-    },
-    actix_files::{
-        NamedFile
-    },
-    std::path::{
-        PathBuf
-    },
+    } , 
+    askama::Template ,
 };
 
 pub fn default_configs(cfg : &mut web::ServiceConfig) {
@@ -27,20 +30,23 @@ pub fn default_configs(cfg : &mut web::ServiceConfig) {
 
 // Loading homepage as file ( no askama here atleast for now )
 #[get("/")]
-async fn homepage(req : HttpRequest) -> Result<HttpResponse> {
-    let homepage_file = PathBuf::from(format!("{}/homepage.html" , TEMPLATE_PATH));
+async fn homepage(_req : HttpRequest , state : web::Data<UserState>) -> Result<HttpResponse> {
 
-    let response = match NamedFile::open(homepage_file) {
-        Ok(page) => {
-            page.into_response(&req)
-        } , 
+    let messages = UserTemplate::new(&state);
+
+    let html = match messages.render() {
+        Ok(body) => body ,
         Err(err) => {
             eprintln!("Error : {}" , err);
-            return Ok(HttpResponse::InternalServerError().body("<h1>Error code 500</h1>"));
-        }
+            return Ok(HttpResponse::InternalServerError().body("<h1> Error 500 </h1>"));
+        }   
     };
 
-    Ok(response)
+    Ok(
+        HttpResponse::Ok()
+        .content_type(ContentType::html())
+        .body(html)
+    )
 }
 
 // Setting icon 

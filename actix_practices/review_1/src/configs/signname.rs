@@ -1,6 +1,9 @@
 use {
     super::TEMPLATE_PATH,
-    super::UserMessage,
+    super::{
+        UserMessage ,
+        UserState
+    },
     actix_web::{
         HttpResponse , HttpRequest , Result
         , get 
@@ -20,9 +23,6 @@ use {
         PathBuf
     },
     urlencoding::{self},
-    tokio::{
-        sync::Mutex
-    }
 };
 
 #[derive(Debug , Serialize , Deserialize)]
@@ -31,7 +31,7 @@ struct SignForm {
     message : String
 }
 
-pub fn signpage_config(cfg : &mut web::ServiceConfig , data : web::Data<Mutex<Vec<UserMessage>>>) {
+pub fn signpage_config(cfg : &mut web::ServiceConfig , data : web::Data<UserState>) {
     cfg
     .app_data(data)
     .service(sign_message_page)
@@ -71,7 +71,7 @@ async fn signup_page(req : HttpRequest) -> Result<HttpResponse> {
 }
 
 #[post("/sign")]
-async fn sign_message_post(form : web::Form<SignForm> , data : web::Data<Mutex<Vec<UserMessage>>>) -> Result<HttpResponse> {
+async fn sign_message_post(form : web::Form<SignForm> , data : web::Data<UserState>) -> Result<HttpResponse> {
     println!("{} : {}" , form.name , form.message);
 
     let redirect_url = format!(
@@ -80,9 +80,7 @@ async fn sign_message_post(form : web::Form<SignForm> , data : web::Data<Mutex<V
             urlencoding::encode(&form.message)
         );
 
-    let _ = data.lock().await.push(
-        UserMessage::from(form.name.clone(), form.message.clone())
-    );
+    let _ = data.push(UserMessage::new(form.name.clone() , form.message.clone()));
 
     Ok(HttpResponse::SeeOther()
         .append_header(("Location", redirect_url.as_str()))

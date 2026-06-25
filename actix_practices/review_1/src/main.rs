@@ -13,9 +13,10 @@ use {
     configs::{
         default_configs,
         signpage_config,
-        UserMessage
+        UserState
     },
 };
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
@@ -46,7 +47,7 @@ async fn main() -> std::io::Result<()> {
 
     println!("Starting HTTPS server at https://www.myapp.test:443");
     
-    let users_data = UserMessage::new();
+    let users_data = UserState::new();
 
     HttpServer::new(move || {
         let logger = middleware::Logger::new("%s %a %{User-Agent}i");

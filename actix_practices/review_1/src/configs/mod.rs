@@ -14,5 +14,7 @@ pub use signname::{
 };
 
 pub(super) use webdata::{
-    UserMessage
+    UserMessage ,
+    UserState ,
+    UserTemplate
 };

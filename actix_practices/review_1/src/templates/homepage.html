@@ -4,156 +4,357 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home • My Website</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
     <style>
         body {
             font-family: 'Inter', system-ui, sans-serif;
         }
+
         .hero-bg {
-            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.75)), url('https://picsum.photos/id/1015/2000/1200');
+            background:
+                linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.75)),
+                url("https://picsum.photos/id/1015/2000/1200");
             background-size: cover;
             background-position: center;
         }
+
+        /* Hide scrollbar but still allow scrolling */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-900">
 
-    <!-- Navbar -->
-    <nav class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">M</div>
-                <span class="font-semibold text-2xl">MySite</span>
+<!-- ===================================== -->
+<!-- Navbar -->
+<!-- ===================================== -->
+
+<nav class="bg-white border-b sticky top-0 z-50">
+
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl">
+                M
             </div>
-            
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="#" class="hover:text-indigo-600 font-medium">Home</a>
-                <a href="#" class="hover:text-indigo-600 font-medium">About</a>
-                <a href="#" class="hover:text-indigo-600 font-medium">Services</a>
-                <a href="#" class="hover:text-indigo-600 font-medium">Blog</a>
-                <a href="#" class="hover:text-indigo-600 font-medium">Contact</a>
-            </div>
-            
-            <!-- Updated Button - Now redirects to signup route -->
+
+            <span class="text-2xl font-semibold">
+                MySite
+            </span>
+        </div>
+
+        <div class="hidden md:flex gap-8">
+            <a href="#" class="hover:text-indigo-600 font-medium">Home</a>
+            <a href="#" class="hover:text-indigo-600 font-medium">About</a>
+            <a href="#" class="hover:text-indigo-600 font-medium">Services</a>
+            <a href="#" class="hover:text-indigo-600 font-medium">Blog</a>
+            <a href="#" class="hover:text-indigo-600 font-medium">Contact</a>
+        </div>
+
+        <a href="/sign_message"
+           class="bg-indigo-600 text-white px-6 py-2 rounded-2xl hover:bg-indigo-700 transition">
+            Sign Up
+        </a>
+
+    </div>
+
+</nav>
+
+<!-- ===================================== -->
+<!-- Hero -->
+<!-- ===================================== -->
+
+<header class="hero-bg h-screen flex items-center text-white">
+
+    <div class="max-w-4xl mx-auto text-center px-6">
+
+        <h1 class="text-6xl md:text-7xl font-bold mb-6">
+            Welcome to the<br>
+            Future
+        </h1>
+
+        <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto">
+            Simple, beautiful, and built just for you.
+            Start your journey with a stunning homepage.
+        </p>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+
+            <button
+                onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})"
+                class="bg-white text-gray-900 px-8 py-4 rounded-2xl font-semibold hover:bg-gray-100">
+
+                Explore
+
+            </button>
+
             <a href="/sign_message"
-               class="bg-indigo-600 text-white px-6 py-2.5 rounded-2xl font-medium hover:bg-indigo-700 transition inline-block text-center">
-                Sign Up
+               class="border border-white px-8 py-4 rounded-2xl hover:bg-white/10">
+
+                Get Started
+
             </a>
-        </div>
-    </nav>
 
-    <!-- Hero -->
-    <header class="hero-bg h-screen flex items-center text-white">
-        <div class="max-w-4xl mx-auto px-6 text-center">
-            <h1 class="text-6xl md:text-7xl font-bold leading-tight mb-6">
-                Welcome to the<br>Future
-            </h1>
-            <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto">
-                Simple, beautiful, and built just for you. 
-                Start your journey with a stunning homepage.
+        </div>
+
+    </div>
+
+</header>
+
+<!-- ===================================== -->
+<!-- Features -->
+<!-- ===================================== -->
+
+<section id="features" class="py-24 bg-white">
+
+    <div class="max-w-7xl mx-auto px-6">
+
+        <div class="text-center mb-16">
+
+            <h2 class="text-4xl font-bold mb-4">
+                Why Choose Us
+            </h2>
+
+            <p class="text-gray-600">
+                Everything you need in one clean package.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="document.getElementById('features').scrollIntoView({ behavior: 'smooth' })" 
-                        class="bg-white text-gray-900 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-100 transition">
-                    Explore
-                </button>
-                <a href="/sign_message"
-                   class="border border-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition inline-block text-center">
-                    Get Started
-                </a>
-            </div>
-        </div>
-    </header>
 
-    <!-- Features -->
-    <section id="features" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4">Why Choose Us</h2>
-                <p class="text-gray-600 max-w-md mx-auto">Everything you need in one clean package</p>
-            </div>
-            
-            <div class="grid md:grid-cols-3 gap-10">
-                <!-- Card 1 -->
-                <div class="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition">
-                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-rocket text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3">Lightning Fast</h3>
-                    <p class="text-gray-600">Optimized performance that loads instantly on any device.</p>
-                </div>
-                
-                <!-- Card 2 -->
-                <div class="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition">
-                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-palette text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3">Beautiful Design</h3>
-                    <p class="text-gray-600">Modern, clean aesthetics that make a great first impression.</p>
-                </div>
-                
-                <!-- Card 3 -->
-                <div class="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition">
-                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-mobile-screen text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3">Fully Responsive</h3>
-                    <p class="text-gray-600">Looks perfect on phones, tablets, and desktop screens.</p>
-                </div>
-            </div>
         </div>
-    </section>
 
-    <!-- About -->
-    <section class="py-24 bg-gray-100">
-        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-            <div>
-                <img src="https://picsum.photos/id/237/800/600" alt="About image" 
-                     class="rounded-3xl shadow-2xl">
-            </div>
-            <div>
-                <h2 class="text-4xl font-bold mb-6">A little about us</h2>
-                <p class="text-lg text-gray-600 mb-6">
-                    We're passionate about creating delightful digital experiences. 
-                    This simple homepage was built in seconds to show what's possible.
+        <div class="grid md:grid-cols-3 gap-10">
+
+            <div class="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition">
+
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex justify-center items-center mb-6">
+                    <i class="fa-solid fa-rocket text-2xl"></i>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-3">
+                    Lightning Fast
+                </h3>
+
+                <p class="text-gray-600">
+                    Optimized performance that loads instantly on any device.
                 </p>
-                <p class="text-lg text-gray-600">
-                    Whether you're a freelancer, startup, or big company, a strong online presence starts here.
+
+            </div>
+
+            <div class="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition">
+
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex justify-center items-center mb-6">
+                    <i class="fa-solid fa-palette text-2xl"></i>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-3">
+                    Beautiful Design
+                </h3>
+
+                <p class="text-gray-600">
+                    Modern, clean aesthetics that make a great first impression.
                 </p>
-                <a href="/sign_message"
-                   class="mt-8 inline-block bg-indigo-600 text-white px-8 py-4 rounded-2xl font-medium hover:bg-indigo-700 transition">
-                    Get Started →
-                </a>
-            </div>
-        </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-16">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center space-x-2 mb-8 md:mb-0">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">M</div>
-                    <span class="font-semibold text-2xl">MySite</span>
-                </div>
-                
-                <div class="flex flex-col md:flex-row gap-x-8 gap-y-4 text-center md:text-left">
-                    <a href="#" class="hover:text-indigo-400">Twitter</a>
-                    <a href="#" class="hover:text-indigo-400">Instagram</a>
-                    <a href="#" class="hover:text-indigo-400">GitHub</a>
-                    <a href="#" class="hover:text-indigo-400">LinkedIn</a>
-                </div>
             </div>
-            
-            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
-                © 2026 My Awesome Website. Made with ❤️ and a few lines of code.
-            </div>
-        </div>
-    </footer>
 
-    <script>
-        console.log("%cHomepage loaded successfully! 👋", "color: #6366f1; font-size: 14px;");
-    </script>
+            <div class="bg-gray-50 rounded-3xl p-8 hover:shadow-xl transition">
+
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex justify-center items-center mb-6">
+                    <i class="fa-solid fa-mobile-screen text-2xl"></i>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-3">
+                    Fully Responsive
+                </h3>
+
+                <p class="text-gray-600">
+                    Looks perfect on phones, tablets and desktop.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ===================================== -->
+<!-- About -->
+<!-- ===================================== -->
+
+<section class="py-24 bg-gray-100">
+
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+
+        <img
+            src="https://picsum.photos/id/237/800/600"
+            class="rounded-3xl shadow-2xl">
+
+        <div>
+
+            <h2 class="text-4xl font-bold mb-6">
+                A little about us
+            </h2>
+
+            <p class="text-lg text-gray-600 mb-6">
+                We're passionate about creating delightful digital experiences.
+                This homepage was built to demonstrate a clean modern layout.
+            </p>
+
+            <p class="text-lg text-gray-600">
+                Whether you're a startup or a large company,
+                your online presence starts here.
+            </p>
+
+            <a href="/sign_message"
+               class="inline-block mt-8 bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700">
+
+                Get Started →
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ===================================== -->
+<!-- Community Messages -->
+<!-- ===================================== -->
+
+<section class="py-24 bg-white">
+
+    <div class="max-w-7xl mx-auto px-6">
+
+        <div class="text-center mb-12">
+
+            <h2 class="text-4xl font-bold mb-4">
+                Community Messages
+            </h2>
+
+            <p class="text-gray-600">
+                Messages left by our visitors.
+            </p>
+
+        </div>
+
+        <div class="overflow-x-auto hide-scrollbar">
+
+            <div class="flex gap-8 pb-4">
+
+                <!-- ===================================================== -->
+                <!-- ASKAMA STARTS HERE                                    -->
+                <!-- messages is Vec<UserMessage> inside HomepageTemplate   -->
+                <!-- ===================================================== -->
+
+                {% for user in messages %}
+
+                <div class="min-w-[360px] max-w-[360px] bg-gray-50 rounded-3xl shadow-lg p-8 hover:shadow-xl transition">
+
+                    <div class="flex items-center gap-4 mb-6">
+
+                        <div class="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
+
+                            <!--
+                                This takes the first letter
+                                If you don't want it,
+                                replace with just U
+                            -->
+
+                            U
+
+                        </div>
+
+                        <div>
+
+                            <h3 class="text-xl font-semibold">
+                                {{ user.username }}
+                            </h3>
+
+                            <p class="text-gray-500 text-sm">
+                                Community Member
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed italic">
+                        "{{ user.message }}"
+                    </p>
+
+                </div>
+
+                {% endfor %}
+
+                <!-- ===================================================== -->
+                <!-- ASKAMA ENDS HERE                                      -->
+                <!-- ===================================================== -->
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ===================================== -->
+<!-- Footer -->
+<!-- ===================================== -->
+
+<footer class="bg-gray-900 text-white py-16">
+
+    <div class="max-w-7xl mx-auto px-6">
+
+        <div class="flex flex-col md:flex-row justify-between items-center">
+
+            <div class="flex items-center gap-2 mb-8 md:mb-0">
+
+                <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-bold">
+                    M
+                </div>
+
+                <span class="text-2xl font-semibold">
+                    MySite
+                </span>
+
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-8">
+
+                <a href="#" class="hover:text-indigo-400">Twitter</a>
+                <a href="#" class="hover:text-indigo-400">Instagram</a>
+                <a href="#" class="hover:text-indigo-400">GitHub</a>
+                <a href="#" class="hover:text-indigo-400">LinkedIn</a>
+
+            </div>
+
+        </div>
+
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
+            © 2026 My Awesome Website. Made with ❤️ and Rust.
+        </div>
+
+    </div>
+
+</footer>
+
+<script>
+console.log("Homepage Loaded");
+</script>
+
 </body>
 </html>
