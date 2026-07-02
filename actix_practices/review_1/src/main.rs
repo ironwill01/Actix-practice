@@ -13,13 +13,15 @@ use {
     configs::{
         default_configs,
         signpage_config,
-        UserState
+        UserState,
+        cors_setting
     },
+    
 };
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
+
     unsafe {
         std::env::set_var("RUST_LOG", "info");
         std::env::set_var("RUST_BACKTRACE", "1");
@@ -59,6 +61,7 @@ async fn main() -> std::io::Result<()> {
             }
         )
         .wrap(logger)
+        .wrap(cors_setting())
     })
     .bind_openssl("127.0.0.1:443", builder)?
     .run()

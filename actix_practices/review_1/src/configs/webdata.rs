@@ -18,7 +18,7 @@ pub struct UserState {
 }
 
 #[derive(Template)]
-#[template(path = "homepage.html")]
+#[template(path = "homepage.html")] 
 pub struct UserTemplate {
     messages : Vec<UserMessage>
 }

@@ -1,40 +1,34 @@
-mod configs;
-
 use {
     actix_web::{
-        App , HttpServer ,
-        web ,
-        guard ,
-        middleware::{
-            Logger
-        }
-    },
+        App, 
+        HttpServer, 
+        middleware::Logger, 
+        web,
+    }, 
+    env_logger::Env, 
     openssl::ssl::{
-        SslAcceptor 
-        , SslFiletype 
-        , SslMethod
+        SslAcceptor, 
+        SslFiletype, 
+        SslMethod
     },
-    env_logger::{Env},
-    configs::{
-        default_config
-    }
 };
+
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     unsafe {
         std::env::set_var("RUST_LOG", "info");
         std::env::set_var("RUST_BACKTRACE", "1");
     }
 
     let mut builder = match SslAcceptor::mozilla_intermediate(SslMethod::tls()) {
-        Ok(builder) => builder ,
-        Err(errors) => {
-            for err in errors.errors() {
-                eprintln!("Error : {}" , err);
-            }
-            panic!();
+        Ok(builder) => builder , 
+        Err(err) => {
+            err.errors().into_iter().for_each(|err| {
+                eprintln!("Error : {}" , err)
+            });
+            panic!("Could not create SSL builder")
         }
     };
 
@@ -49,16 +43,13 @@ async fn main() -> std::io::Result<()> {
     println!("Starting HTTPS server at https://www.myapp.test:433");
 
     env_logger::init_from_env(Env::default().default_filter_or("info"));
-    
+
     HttpServer::new( move || {
         let logger = Logger::new("%s %a %{User-Agent}i");
 
         App::new().service(
-            web::scope("")
-            .guard(guard::Host("www.myapp.test"))
-            .configure(default_config)
+            web::scope("www.myapp.test")
         )
-        .wrap(logger)
     })
     .bind_openssl("127.0.0.1:433", builder)?
     .run()

@@ -1,14 +1,25 @@
 use {
     actix_cors::Cors,
     actix_web::{
-        Error, HttpRequest, HttpResponse, Result, get, guard,
+        Error, 
+        HttpRequest, 
+        HttpResponse, 
+        Result, 
+        get, 
+        guard,
         http::{
             StatusCode,
-            header::{self, ContentType},
+            header::{
+                self, 
+                ContentType
+            },
         },
         post, web,
     },
-    serde::{Deserialize, Serialize},
+    serde::{
+        Deserialize, 
+        Serialize
+    },
 };
 
 pub mod scopes {
@@ -235,7 +246,7 @@ pub mod scopes {
     // send_wildcard() changes the response header from echoing the request origin to sending Access-Control-Allow-Origin: *.
     
     // That distinction matters because credentials and wildcard responses cannot be combined :
-    fn cors_conf_fail() -> Cors {
+    pub fn cors_conf_fail() -> Cors {
         Cors::default()
         .allow_any_origin()
         .supports_credentials()
@@ -262,4 +273,5 @@ pub mod scopes {
 
     // Applying CORS To Your App
     // Once the builder has been created from config, wrap it like any other middleware
+
 }
